@@ -1,0 +1,104 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Image Analysis App</title>
+    <style>
+        /* (CSS Styles - same as before) */
+    </style>
+</head>
+<body>
+
+    <h1>Image Analysis Application</h1>
+
+    <div class="tab">
+        <button class="tablinks active" onclick="openTab(event, 'WoundAnalysis')">Wound Analysis</button>
+        <button class="tablinks" onclick="openTab(event, 'WeaponAnalysis')">Weapon Analysis (from Wound)</button> <!-- Updated Tab Text -->
+    </div>
+
+    <!-- Wound Analysis Tab (Same as before) -->
+    <div id="WoundAnalysis" class="tabcontent" style="display:block">
+        <h3>Wound Image Analysis</h3>
+        <input type="file" id="woundImageUpload">
+        <img id="imagePreviewWound" src="#" alt="Wound Preview">
+        <div id="woundReport" class="report-area">
+            <!-- Wound report will be displayed here -->
+        </div>
+
+        <h4>Patient Details</h4>
+        <!-- (Patient Details Input - same as before) -->
+        <div id="patientWoundDetails" class="report-area">
+            <!-- Patient and wound details will be displayed here -->
+        </div>
+        <button onclick="displayPatientDetails()">Display Patient Details</button>
+    </div>
+
+    <!-- Weapon Analysis Tab (Updated Text and Report Display) -->
+    <div id="WeaponAnalysis" class="tabcontent">
+        <h3>Weapon Analysis from Wound Image</h3> <!-- Updated Heading -->
+        <p>Upload an image of the wound to predict the weapon used.</p> <!-- Added explanatory text -->
+        <input type="file" id="weaponImageUpload">
+        <img id="imagePreviewWeapon" src="#" alt="Weapon Preview (Wound Image)"> <!-- Updated Alt Text -->
+        <div id="weaponReport" class="report-area">
+            <!-- Weapon report will be displayed here -->
+        </div>
+    </div>
+
+    <script>
+        /* (JavaScript - mostly same as before, only weaponReport update changed) */
+        function openTab(event, tabName) {
+            // (Tab switching function - same as before)
+        }
+
+        // --- Wound Analysis JavaScript (Same as before) ---
+        const woundImageUpload = document.getElementById('woundImageUpload');
+        const imagePreviewWound = document.getElementById('imagePreviewWound');
+        const woundReport = document.getElementById('woundReport');
+        woundImageUpload.addEventListener('change', function(event) { /* ... (same as before) ... */ });
+
+        // --- Weapon Analysis JavaScript (Updated Report Display) ---
+        const weaponImageUpload = document.getElementById('weaponImageUpload');
+        const imagePreviewWeapon = document.getElementById('imagePreviewWeapon');
+        const weaponReport = document.getElementById('weaponReport');
+
+        weaponImageUpload.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function(e) {
+                imagePreviewWeapon.src = e.target.result;
+                imagePreviewWeapon.style.display = 'block';
+
+                const formData = new FormData();
+                formData.append('weaponImage', file); // Key remains 'weaponImage'
+
+                fetch('/analyze_weapon', { // Route remains '/analyze_weapon'
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                        weaponReport.innerHTML = `Image Dimensions: ${data.width}x${data.height}<br>`;
+                        weaponReport.innerHTML += `Estimated Wound Diameter (for weapon prediction): ${data.wound_diameter_estimate || 'N/A'}<br>`; // Display wound diameter estimate
+                        weaponReport.innerHTML += `Predicted Weapon Type (based on wound diameter): ${data.predicted_weapon || 'N/A'}`; // Display predicted weapon
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    weaponReport.innerHTML = 'Error processing wound image for weapon analysis.'; // Updated error message
+                });
+            }
+            reader.readAsDataURL(file);
+        });
+
+        // --- Patient Details Display JavaScript (Same as before) ---
+        const patientWoundDetails = document.getElementById('patientWoundDetails');
+        function displayPatientDetails() { /* ... (same as before) ... */ }
+
+        // Initially open Wound Analysis tab (Same as before)
+        document.addEventListener('DOMContentLoaded', (event) => {
+            document.querySelector('.tablinks.active').click();
+        });
+    </script>
+
+</body>
+</html>
